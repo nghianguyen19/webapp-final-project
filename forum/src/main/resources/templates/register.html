@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Register</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="auth-body">
+
+<nav class="navbar navbar-expand-lg navbar-dark forum-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">IU Forum</a>
+
+        <div class="d-flex gap-2">
+            <button id="themeToggle"
+                    type="button"
+                    class="btn btn-outline-light btn-sm theme-toggle-btn">
+                Dark
+            </button>
+
+            <a href="/" class="btn btn-outline-light btn-sm">Home</a>
+            <a href="/login" class="btn btn-primary btn-sm">Login</a>
+        </div>
+    </div>
+</nav>
+
+<main class="auth-wrapper">
+    <div class="auth-card register-card">
+        <div class="text-center mb-4">
+            <div class="auth-logo">CF</div>
+            <h2>Create Account</h2>
+            <p class="text-muted mb-0">Join IU Forum and start discussing.</p>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}">
+            Error message
+        </div>
+
+        <form th:action="@{/register}" th:object="${registerDto}" method="post">
+
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text"
+                       th:field="*{username}"
+                       class="form-control"
+                       placeholder="Example: john123"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text"
+                       th:field="*{fullName}"
+                       class="form-control"
+                       placeholder="Example: John Nguyen"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email"
+                       th:field="*{email}"
+                       class="form-control"
+                       placeholder="Example: john@email.com"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password"
+                       th:field="*{password}"
+                       class="form-control"
+                       placeholder="At least 6 characters"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Confirm Password</label>
+                <input type="password"
+                       th:field="*{confirmPassword}"
+                       class="form-control"
+                       placeholder="Re-enter your password"
+                       required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Register
+            </button>
+
+        </form>
+
+        <div class="auth-footer">
+            <p class="mb-0">
+                Already have an account?
+                <a href="/login">Login here</a>
+            </p>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

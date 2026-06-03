@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Profile</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark forum-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">IU Forum</a>
+
+        <div class="d-flex align-items-center gap-2">
+            <button id="themeToggle"
+                    type="button"
+                    class="btn btn-outline-light btn-sm theme-toggle-btn">
+                Dark
+            </button>
+
+            <a href="/" class="btn btn-outline-light btn-sm">Home</a>
+
+            <a href="/posts/new"
+               class="btn btn-primary btn-sm"
+               sec:authorize="isAuthenticated()">
+                New Post
+            </a>
+
+            <a href="/bookmarks"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Bookmarks
+            </a>
+
+            <a href="/notifications"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Notifications
+            </a>
+
+            <a href="/login"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="!isAuthenticated()">
+                Login
+            </a>
+
+            <a href="/logout"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<section class="profile-header">
+    <div class="container">
+        <div class="profile-card">
+            <img th:src="${profileUser.avatarUrl != null ? profileUser.avatarUrl : '/images/default-avatar.png'}"
+                 class="profile-avatar"
+                 alt="avatar">
+
+            <div>
+                <h1 th:text="${profileUser.fullName}">Full Name</h1>
+                <p class="profile-username" th:text="'@' + ${profileUser.username}">@username</p>
+                <p class="profile-bio" th:text="${profileUser.bio}">Bio</p>
+
+                <div class="profile-stats">
+                    <span th:text="'Posts: ' + ${postCount}">Posts: 0</span>
+                    <span th:text="'Comments: ' + ${commentCount}">Comments: 0</span>
+                    <span th:text="'Role: ' + ${displayRole}">Role</span>
+                    <span th:text="'Status: ' + ${profileUser.status}">Status</span>
+                </div>
+                <div sec:authorize="isAuthenticated()" class="mt-3">
+    <a th:if="${#authentication.name == profileUser.username}"
+       href="/profile/edit"
+       class="btn btn-light btn-sm">
+        Edit My Profile
+    </a>
+</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<main class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+
+            <h3 class="mb-4" th:text="|${profileUser.username}'s Posts|">
+                User posts
+            </h3>
+
+            <div th:if="${#lists.isEmpty(posts)}" class="forum-card">
+                <p class="mb-0 text-muted">This user has not created any posts yet.</p>
+            </div>
+
+            <div class="forum-card post-list-card" th:each="post : ${posts}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge category-badge"
+                          th:text="${post.category.name}"
+                          th:style="'background-color:' + ${post.category.color}">
+                        Category
+                    </span>
+
+                    <small class="text-muted"
+                           th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy HH:mm')}">
+                        Date
+                    </small>
+                </div>
+
+                <a th:href="@{/posts/{id}(id=${post.id})}" class="post-title">
+                    <h5 class="mt-3 mb-2" th:text="${post.title}">
+                        Post title
+                    </h5>
+                </a>
+
+                <p class="text-muted" th:text="${post.shortContent}">
+                    Post content preview
+                </p>
+
+                <div class="forum-meta">
+                    <span th:text="'Comments: ' + ${post.commentCount}">comments</span>
+                    <span th:text="'Likes: ' + ${post.likeCount}">likes</span>
+                    <span th:text="'Saves: ' + ${post.bookmarkCount}">saves</span>
+                    <span th:text="'Views: ' + ${post.viewCount}">views</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<footer class="footer mt-5">
+    <div class="container text-center">
+        <p>© 2026 IU Forum. International University.</p>
+    </div>
+</footer>
+
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

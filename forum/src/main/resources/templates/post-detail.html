@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Post Detail</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark forum-navbar">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">IU Forum</a>
+
+        <div class="d-flex align-items-center gap-2">
+            <button id="themeToggle"
+                    type="button"
+                    class="btn btn-outline-light btn-sm theme-toggle-btn">
+                Dark
+            </button>
+
+            <span class="navbar-text text-light small" sec:authorize="isAuthenticated()">
+                Hello, <strong sec:authentication="name">user</strong>
+            </span>
+
+            <a href="/posts/new"
+               class="btn btn-primary btn-sm"
+               sec:authorize="isAuthenticated()">
+                New Post
+            </a>
+
+            <a href="/bookmarks"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Bookmarks
+            </a>
+
+            <a href="/notifications"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Notifications
+            </a>
+
+            <a href="/admin"
+               class="btn btn-warning btn-sm"
+               sec:authorize="hasRole('ADMIN')">
+                Admin
+            </a>
+
+            <a href="/login"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="!isAuthenticated()">
+                Login
+            </a>
+
+            <a href="/logout"
+               class="btn btn-outline-light btn-sm"
+               sec:authorize="isAuthenticated()">
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<main class="container mt-5">
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+
+            <div th:if="${param.reported}" class="alert alert-success">
+                Your report has been submitted successfully.
+            </div>
+
+            <div class="forum-card post-detail-card">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge category-badge"
+                          th:text="${post.category.name}"
+                          th:style="'background-color:' + ${post.category.color}">
+                        Category
+                    </span>
+
+                    <small class="text-muted"
+                           th:text="${#temporals.format(post.createdAt, 'dd MMM yyyy HH:mm')}">
+                        Date
+                    </small>
+                </div>
+
+                <h1 class="post-detail-title" th:text="${post.title}">
+                    Post title
+                </h1>
+
+                <div class="post-author-box">
+                    <img th:src="${post.author.avatarUrl != null ? post.author.avatarUrl : '/images/default-avatar.png'}"
+                         class="avatar"
+                         alt="avatar">
+
+                    <div>
+                        <a th:href="@{/profile/{username}(username=${post.author.username})}"
+                           class="author-link"
+                           th:text="${post.author.username}">
+                            username
+                        </a>
+
+                        <p class="mb-0 text-muted small" th:text="${post.author.bio}">
+                            user bio
+                        </p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <p class="post-content" th:text="${post.content}">
+                    Full post content
+                </p>
+
+                <div class="post-action-panel">
+                    <form th:action="@{/posts/like/{id}(id=${post.id})}"
+                          method="post"
+                          sec:authorize="isAuthenticated()">
+                        <button type="submit"
+                                class="btn btn-sm"
+                                th:classappend="${likedByCurrentUser} ? ' btn-danger' : ' btn-outline-danger'">
+                            <span th:text="${likedByCurrentUser} ? 'Unlike' : 'Like'">Like</span>
+                            <span th:text="'(' + ${likeCount} + ')'">(0)</span>
+                        </button>
+                    </form>
+
+                    <form th:action="@{/posts/bookmark/{id}(id=${post.id})}"
+                          method="post"
+                          sec:authorize="isAuthenticated()">
+                        <button type="submit"
+                                class="btn btn-sm"
+                                th:classappend="${bookmarkedByCurrentUser} ? ' btn-primary' : ' btn-outline-primary'">
+                            <span th:text="${bookmarkedByCurrentUser} ? 'Bookmarked' : 'Bookmark'">Bookmark</span>
+                            <span th:text="'(' + ${bookmarkCount} + ')'">(0)</span>
+                        </button>
+                    </form>
+
+                    <div sec:authorize="!isAuthenticated()" class="text-muted small">
+                        Login to like or bookmark this post.
+                    </div>
+                </div>
+
+                <div sec:authorize="isAuthenticated()" class="report-box mt-3">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#reportPostForm">
+                        Report Post
+                    </button>
+
+                    <div class="collapse mt-3" id="reportPostForm">
+                        <form th:action="@{/reports/post/{postId}(postId=${post.id})}" method="post">
+                            <div class="mb-2">
+                                <select name="reason" class="form-select form-select-sm" required>
+                                    <option value="">Choose reason</option>
+                                    <option value="Spam">Spam</option>
+                                    <option value="Harassment">Harassment</option>
+                                    <option value="Inappropriate Content">Inappropriate Content</option>
+                                    <option value="Wrong Information">Wrong Information</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <textarea name="description"
+                                          class="form-control"
+                                          rows="3"
+                                          placeholder="Describe the problem..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Submit Report
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a th:if="${canManagePost}"
+                       th:href="@{/posts/edit/{id}(id=${post.id})}"
+                       class="btn btn-warning btn-sm">
+                        Edit Post
+                    </a>
+
+                    <form th:if="${canManagePost}"
+                          th:action="@{/posts/delete/{id}(id=${post.id})}"
+                          method="post"
+                          onsubmit="return confirm('Are you sure you want to delete this post?');">
+                        <button type="submit" class="btn btn-danger btn-sm">
+                            Delete Post
+                        </button>
+                    </form>
+
+                    <a href="/" class="btn btn-outline-secondary btn-sm">
+                        Back Home
+                    </a>
+                </div>
+            </div>
+
+            <div class="forum-card mt-4">
+                <h4 class="mb-4" th:text="'Comments (' + ${#lists.size(comments)} + ')'">
+                    Comments
+                </h4>
+
+                <div th:if="${#lists.isEmpty(comments)}">
+                    <p class="text-muted">No comments yet. Be the first to comment.</p>
+                </div>
+
+                <div class="comment-box" th:each="comment : ${comments}">
+                    <div class="d-flex gap-3">
+                        <img th:src="${comment.author.avatarUrl != null ? comment.author.avatarUrl : '/images/default-avatar.png'}"
+                             class="avatar-sm"
+                             alt="avatar">
+
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between">
+                                <a th:href="@{/profile/{username}(username=${comment.author.username})}"
+                                   class="author-link"
+                                   th:text="${comment.author.username}">
+                                    username
+                                </a>
+
+                                <small class="text-muted"
+                                       th:text="${#temporals.format(comment.createdAt, 'dd MMM yyyy HH:mm')}">
+                                    date
+                                </small>
+                            </div>
+
+                            <p class="mb-2" th:text="${comment.content}">
+                                Comment content
+                            </p>
+
+                            <div class="d-flex gap-2 flex-wrap">
+                                <form th:action="@{/comments/delete/{id}(id=${comment.id})}"
+                                      method="post"
+                                      sec:authorize="isAuthenticated()"
+                                      onsubmit="return confirm('Delete this comment?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        Delete
+                                    </button>
+                                </form>
+
+                                <div sec:authorize="isAuthenticated()">
+                                    <button class="btn btn-sm btn-outline-secondary"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            th:attr="data-bs-target='#reportCommentForm' + ${comment.id}">
+                                        Report
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div sec:authorize="isAuthenticated()"
+                                 class="collapse mt-2"
+                                 th:id="'reportCommentForm' + ${comment.id}">
+                                <form th:action="@{/reports/comment/{commentId}(commentId=${comment.id})}" method="post">
+                                    <input type="hidden" name="postId" th:value="${post.id}">
+
+                                    <div class="mb-2">
+                                        <select name="reason" class="form-select form-select-sm" required>
+                                            <option value="">Choose reason</option>
+                                            <option value="Spam">Spam</option>
+                                            <option value="Harassment">Harassment</option>
+                                            <option value="Inappropriate Content">Inappropriate Content</option>
+                                            <option value="Wrong Information">Wrong Information</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <textarea name="description"
+                                                  class="form-control"
+                                                  rows="2"
+                                                  placeholder="Describe the problem..."></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        Submit Report
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div sec:authorize="isAuthenticated()">
+                    <h5>Add Comment</h5>
+
+                    <form th:action="@{/comments/add/{postId}(postId=${post.id})}" method="post">
+                        <div class="mb-3">
+                            <textarea name="content"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Write your comment..."
+                                      required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Post Comment
+                        </button>
+                    </form>
+                </div>
+
+                <div sec:authorize="!isAuthenticated()" class="alert alert-info">
+                    Please <a href="/login">login</a> to write a comment.
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="sidebar-card">
+                <h5>Post Stats</h5>
+                <p class="mb-1" th:text="'Views: ' + ${post.viewCount}">Views: 0</p>
+                <p class="mb-1" th:text="'Comments: ' + ${#lists.size(comments)}">Comments: 0</p>
+                <p class="mb-1" th:text="'Likes: ' + ${likeCount}">Likes: 0</p>
+                <p class="mb-1" th:text="'Bookmarks: ' + ${bookmarkCount}">Bookmarks: 0</p>
+                <p class="mb-0" th:text="'Status: ' + (${post.locked} ? 'Locked' : 'Open')">Status</p>
+            </div>
+
+            <div class="sidebar-card mt-4">
+                <h5>Author</h5>
+
+                <div class="d-flex align-items-center gap-3 mt-3">
+                    <img th:src="${post.author.avatarUrl != null ? post.author.avatarUrl : '/images/default-avatar.png'}"
+                         class="avatar"
+                         alt="avatar">
+
+                    <div>
+                        <strong th:text="${post.author.fullName}">Full Name</strong>
+                        <p class="mb-0 text-muted small" th:text="'@' + ${post.author.username}">
+                            @username
+                        </p>
+                    </div>
+                </div>
+
+                <a th:href="@{/profile/{username}(username=${post.author.username})}"
+                   class="btn btn-outline-primary btn-sm mt-3">
+                    View Profile
+                </a>
+            </div>
+
+            <div class="sidebar-card mt-4">
+                <h5>Category</h5>
+
+                <a th:href="@{/categories/{slug}(slug=${post.category.slug})}"
+                   class="btn btn-outline-primary btn-sm mt-2"
+                   th:text="${post.category.name}">
+                    Category
+                </a>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer class="footer mt-5">
+    <div class="container text-center">
+        <p>© 2026 IU Forum. International University.</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>
